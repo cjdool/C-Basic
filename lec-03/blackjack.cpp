@@ -31,9 +31,20 @@ void shuffle_cards()
 
 int parse_number(string trump)
 {
-  int 
+  string temp = trump.pop_back(0);
+  int value;
+  if (temp.compare("A") == 0)
+    value = 11;
+  else if (temp.compare("J") == 0)
+    value = 10;
+  else if (temp.compare("Q") == 0)
+    value = 10;
+  else if (temp.compare("K") == 0)
+    value = 10;
+  else
+    value = stoi(temp);
 
-  
+  return value;
 }
 
 int main(int argc, char **argv)
@@ -43,6 +54,7 @@ int main(int argc, char **argv)
     cout << "Command Line Error!" << endl;
     exit(0);
   }
+  /*Game Setting*/
   int decks = 4;
   int seed = stoi(argv[1]);
   players = stoi(argv[2]);
@@ -77,24 +89,53 @@ int main(int argc, char **argv)
     }
   }
   shuffle_cards();
-  /*Your Code*/
+  /*Game Setting End*/
 
+  /*Game Start*/
   vector<string> house_card;
-  vector<vector<string>> players_card;
-
-  house_card.push_back(draw_card());
-  house_card.push_back(draw_card());
-  cout << "House: HIDDEN, " << house_card[1] << endl;
+  int house_sum;
+  vector<vector<string>> players_card(players);
+  vector<int> players_sum(players);
 
   for (int i = 0; i < players; i++)
   {
     players_card[i].push_back(draw_card());
     players_card[i].push_back(draw_card());
-    int sum = parse_number(player_card[i][0]) + parse_number(player_card[i][1]);
-    cout << "Plater" << i+1 << ": " << player_card[i][0] << ", " << player_card[i][1] << " (" << sum << ")" << endl;
+    players_sum[i] = parse_number(player_card[i][0]) + parse_number(player_card[i][1]);
+    if (players_sum[i] > 21)
+    {
+      players_sum[i] = players_sum[i] - 10;
+    }
   }
 
-  
+  house_card.push_back(draw_card());
+  house_card.push_back(draw_card());
+  house_sum = parse_number(house_card[0]) + parse_number(house_card[1]);
+  if (house_sum > 21)
+  {
+    house_sum = house_sum - 10;
+  }
+
+  cout << "House: HIDDEN, " << house_card[1] << endl;
+  for (int i = 0; i < players; i++)
+  {
+    cout << "Player" << i+1 << ": " << players_card[i][0] << ", " << players_card[i][1] << "(" << players_sum[i] << ")" << endl;
+  }
+
+  /*Player turn start*/
+  for (int i = 0; i < players; i++)
+  {
+    cout << "---Player" << i+1 << " turn ---" << endl;
+
+
+
+    cout << endl;
+  }
+  /*Player turn End*/
+
+  /*House turn Start*/
+
+  /*House turn End*/
 
   return 0;
 }
