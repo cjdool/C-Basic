@@ -5,7 +5,7 @@
 
 using namespace std;
 vector<string> cards;
-int players
+int players;
 
 void swap(int i, int j)
 {
@@ -31,7 +31,7 @@ void shuffle_cards()
 
 int parse_number(string trump)
 {
-  string temp = trump.pop_back(0);
+  string temp = trump.substr(0, trump.size()-1);
   int value;
   if (temp.compare("A") == 0)
     value = 11;
@@ -74,10 +74,60 @@ string choose_hit (int sum)
   return output;
 }
 
+int check_ace(vector<string> &card)
+{
+  int ace_count = 0;
+  for (auto &x : card)
+  {
+    char temp = x.at(0);
+    if (temp == 'A')
+    {
+      ace_count++;
+      break;
+    }
+  }
+  return ace_count;
+}
+
+
 void hit_handler(vector<string> &card, int &p_sum)
 {
   int temp_sum = p_sum + parse_number(card.back());
-
+  if (temp_sum > 21) // over 21 -> check ace case
+  {
+    int ace_count = check_ace(card);
+    if (ace_count != 0)
+    {
+      int max_sum = 0;
+      for (auto &x: card)
+      {
+        max_sum += parse_number(x);
+      }
+      if ((max_sum - 10 * ace_count) < 22)
+      {
+        for (int i = 1; i <= ace_count; i++)
+        {
+          if ((max_sum - 10 * i) < 22)
+          {
+            p_sum = max_sum - 10 * i;
+            break;
+          }
+        }
+      }
+      else // bust
+      {
+        p_sum = max_sum - 10 * ace_count;
+      }
+    }
+    else // no ace case
+    {
+      p_sum = temp_sum;
+    }
+  }
+  else // not over 21 -> just return value
+  {
+    p_sum = temp_sum;
+  }
 }
 
 int main(int argc, char **argv)
@@ -108,11 +158,11 @@ int main(int argc, char **argv)
       if (i == 1)
         cardnum = "A";
       else if (i == 11)
-        cardnum == "J";
+        cardnum = "J";
       else if (i == 12)
-        cardnum == "Q";
+        cardnum = "Q";
       else if (i == 13)
-        cardnum == "K";
+        cardnum = "K";
       else
         cardnum = to_string(i);
       cards.push_back(cardnum + "c");
@@ -127,34 +177,27 @@ int main(int argc, char **argv)
   /*Game Start*/
   vector<string> house_card;
   int house_sum;
-  string house_result;
   vector<vector<string>> players_card(players);
   vector<int> players_sum(players);
-  vector<string> player_result(players);
+  vector<string> players_result(players);
 
-  /*!st Card dispense*/
+  /*1st Card dispense*/
   for (int i = 0; i < players; i++)
   {
     players_card[i].push_back(draw_card());
+    players_sum[i] = parse_number(players_card[i][0]);
   }
   house_card.push_back(draw_card());
+  house_sum = parse_number(house_card[0]);
 
   /*2nd Card dispense*/
   for (int i = 0; i < players; i++)
   {
     players_card[i].push_back(draw_card());
-    players_sum[i] = parse_number(player_card[i][0]) + parse_number(player_card[i][1]);
-    if (players_sum[i] > 21)
-    {
-      players_sum[i] = players_sum[i] - 10;
-    }
+    hit_handler(players_card[i], players_sum[i]);
   }
   house_card.push_back(draw_card());
-  house_sum = parse_number(house_card[0]) + parse_number(house_card[1]);
-  if (house_sum > 21)
-  {
-    house_sum = house_sum - 10;
-  }
+  hit_handler(house_card, house_sum);
 
   /*Print out result of 1st,2nd card*/
   cout << "House: HIDDEN, " << house_card[1] << endl;
@@ -167,10 +210,9 @@ int main(int argc, char **argv)
   string user_input;
   if (house_sum == 21) // this case immediate end of game
   {
-    house_result = "Win";
     for (int i = 0; i < players; i++)
     {
-      player_result[i] = "Lose";
+      players_result[i] = "Lose";
     }
   }
   else  // start with players turn
@@ -183,11 +225,11 @@ int main(int argc, char **argv)
       while(1) // player 1 turn loop
       {
         cout << "Player" << i+1 << ": ";
-        for (auto &n: player_card[i])
+        for (auto &n: players_card[i])
         {
           cout << n << ", ";
         }
-        cout << "(" << player_sum[i] << ")" << endl;
+        cout << "(" << players_sum[i] << ")" << endl;
         if (i == 0)
         {
           getline(cin, user_input);
@@ -199,12 +241,12 @@ int main(int argc, char **argv)
 
         if (user_input.compare("Hit") == 0)
         {
-          player_card[i].push_back(draw_card());
-          hit_handler(player_card[i], player_sum[i]);
+          players_card[i].push_back(draw_card());
+          hit_handler(players_card[i], players_sum[i]);
 
-          if (player_sum[i] > 21) // burst case
+          if (players_sum[i] > 21) // burst case
           {
-            player_result[i] = "Lose";
+            players_result[i] = "Lose";
             break;
           }
           else // not over 21 -> re-entered by user
@@ -214,6 +256,7 @@ int main(int argc, char **argv)
         }
         else if (user_input.compare("Stand") == 0)
         {
+          players_result[i] = "Stand";
           break;
         }
         else
@@ -222,11 +265,11 @@ int main(int argc, char **argv)
         }
       } // end of one player turn loop
       cout << "Player" << i+1 << ": ";
-      for (auto &n: player_card[i])
+      for (auto &n: players_card[i])
       {
         cout << n << ", ";
       }
-      cout << "(" << player_sum[i] << ")" << endl << endl;
+      cout << "(" << players_sum[i] << ")" << endl << endl;
     }
     /*end of players turn*/ 
     /*House turn Start*/
@@ -275,19 +318,66 @@ int main(int argc, char **argv)
     {
       cout << n << ", ";
     }
-    cout << "(" << house_sum << ")" << endl;
-
+    cout << "(" << house_sum << ")" << endl << endl;
     /*House turn End*/
   } // End of Actual Game
 
   /*Calculate Result*/
+  int index = 0;
+  for (auto &x : players_result)
+  {
+    if (x.compare("Stand") == 0)
+    {
+      if (house_sum > 21)
+      {
+        x = "Win";
+      }
+      else
+      {
+        if (house_sum < players_sum[index])
+        {
+          x = "Win";
+        }
+        else if (house_sum == players_sum[index])
+        {
+          x = "Draw";
+        }
+        else
+        {
+          x = "Lose";
+        }
+      }
+    }
+    index++;
+  }
 
   /*Print out Result*/
   cout << "---   Game Result   ---" << endl;
   cout << "House: ";
-  for (auto &n; house_card)
+  for (auto &n : house_card)
   {
     cout << n << ", ";
+  }
+  cout << "(" << house_sum << ")";
+  if (house_sum > 21)
+  {
+    cout << " - Bust !!";
+  }
+  cout << endl;
+  // end of House Result
+  for (int i = 0; i < players; i++)
+  {
+    cout << "[" << players_result[i] << "] " << "Player" << i+1 << ": ";
+    for (auto &n: players_card[i])
+    {
+      cout << n << ", ";
+    }
+    cout << "(" << players_sum[i] << ")";
+    if (players_sum[i] > 21)
+    {
+      cout << " - Bust !!";
+    }
+    cout << endl;
   }
 
   return 0;
