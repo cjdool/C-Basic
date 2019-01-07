@@ -205,6 +205,7 @@ int main(int argc, char **argv)
   {
     cout << "Player" << i+1 << ": " << players_card[i][0] << ", " << players_card[i][1] << "(" << players_sum[i] << ")" << endl;
   }
+  cout << endl;
 
   /*Each Turn is Started*/
   string user_input;
@@ -269,7 +270,12 @@ int main(int argc, char **argv)
       {
         cout << n << ", ";
       }
-      cout << "(" << players_sum[i] << ")" << endl << endl;
+      cout << "(" << players_sum[i] << ")";
+      if (players_sum[i] > 21)
+      {
+        cout << " - Bust !!";
+      }
+      cout << endl << endl;
     }
     /*end of players turn*/ 
     /*House turn Start*/
@@ -318,7 +324,12 @@ int main(int argc, char **argv)
     {
       cout << n << ", ";
     }
-    cout << "(" << house_sum << ")" << endl << endl;
+    cout << "(" << house_sum << ")";
+    if (house_sum > 21)
+    {
+      cout << " - Bust !!";
+    }
+    cout << endl << endl;
     /*House turn End*/
   } // End of Actual Game
 
