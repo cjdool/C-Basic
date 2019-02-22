@@ -1,0 +1,38 @@
+In mac os
+========================================================================================================
+three compiler exists in mac os
+
+gcc -> apple llvm-gcc for c / g++ -> apple llvm-gcc for c++
+gcc-8 -> gnu compiler for c / g++-8 -> gnu compiler for c++
+clang -> clang compiler using llvm backend for c / clang++ -> clang compiler using llvm backend for c++
+========================================================================================================
+compiler process
+
+1. general compile process
+
+   making assembly code process:  frontend(making ast) -> optimizer -> backend(making target platform assembly)
+
+   original source -> preprocess source code -> make assembly code -> making object file(real computer readable code)
+
+   -> linking process -> executable file in window, ELF file in unix-system.
+
+2. llvm case
+  
+   original source ----(using clang preprocessor)----> preprocess source code ----(using clang)----> 
+   
+   llvm ir(intermidiate representation) ----(using llvm frontend)----> making llvm bit code 
+   
+   -----(using llvm compiler optimizier and backend)-----> making targeting platform object code or executable file
+
+========================================================================================================
+
+
+clang++ (-std=c++11) -c -emit-llvm {sourcecode name} -> generate llvm bit code (not human readable)
+
+clang++ (-std=c++11) -S -emit-llvm {sourcecode name} -> generate llvm assembly code (human readable)
+
+clang++ (-std=c++11) -o {object code name} {sourcecode name} -> generate c++ object code
+
+clang++ -o {object code name} {llvm bit code or assembly code name}.bc -> generate c++ object code
+
+*** -> .ll, .bc case no need to specify c++ or c or c++ version because llvm bit code is language free
