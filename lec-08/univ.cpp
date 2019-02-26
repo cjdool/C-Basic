@@ -25,7 +25,7 @@ unvlist<A>::unvlist(const A* arr, int array_length)
             nodeaddr = new Node<A>;
             Node<A> *currentptr = nodeaddr;
             int i = 0;
-            while (currentptr->getTail() != nullptr)
+            while (currentptr != nullptr)
             {
                 currentptr->Setdata(arr[i]);
                 if (i != numnode - 1) // check it is last node?
@@ -137,7 +137,11 @@ void unvlist<A>::insert(int n, const A &val)
         }
         else
         {
-            if (n < numnode)
+            if (n == 0)
+            {
+                this->push_front(val);
+            }
+            else if (n < numnode)
             {
                 numnode++;
                 /*Find out n-1 th node*/
@@ -155,6 +159,10 @@ void unvlist<A>::insert(int n, const A &val)
                 currentptr->Setdata(val);
                 currentptr->AdjustTail(futureptr);
                 futureptr->AdjustHead(currentptr);
+            }
+            else if (n == numnode)
+            {
+                this->push_back(val);
             }
             else
             {
@@ -176,7 +184,11 @@ void unvlist<A>::erase(int n)
         }
         else
         {
-            if (n < numnode)
+            if (n == 0)
+            {
+                this->pop_front();
+            }
+            else if (n < numnode - 1)
             {
                 numnode--;
                 /*Find out n-1 th node*/
@@ -194,6 +206,10 @@ void unvlist<A>::erase(int n)
                 futureptr->AdjustHead(currentptr);
                 currentptr->Clear();
                 currentptr->AdjustTail(futureptr);
+            }
+            else if (n == numnode -1)
+            {
+                this->pop_back();
             }
             else
             {
@@ -214,74 +230,134 @@ int unvlist<A>::size(void)
 template <typename A>
 A unvlist<A>::pop_back(void)
 {
-    /*Search last node*/
-    numnode--;
-    Node<A> *currentptr = nodeaddr;
-    while (currentptr->getTail() != nullptr)
-    {
-        currentptr = currentptr->getTail();
+    try {
+        if (numnode != 0)
+        {
+            /*Search last node*/
+            numnode--;
+            Node<A> *currentptr = nodeaddr;
+            while (currentptr->getTail() != nullptr)
+            {
+                currentptr = currentptr->getTail();
+            }
+            A retval = currentptr->Getdata();
+            if (numnode != 0)
+            {
+                currentptr = currentptr->getHead();
+                currentptr->Clear();
+            }
+            else
+            {
+                delete nodeaddr;
+                nodeaddr = nullptr;
+            }
+            return retval;
+        }
+        else
+        {
+            throw UnivEX(3);
+        }
+    } catch (UnivEX &ex) {
+        ex.What();
     }
-    A retval = currentptr->Getdata();
-    currentptr = currentptr->getHead();
-    currentptr->Clear();
-    
-    return retval;
 }
 
 template <typename A>
 A unvlist<A>::pop_front(void)
 {
-    numnode--;
-    Node<A> *currentptr = nodeaddr;
-    currentptr = currentptr->getTail();
-    currentptr->AdjustHead(nullptr);
-    nodeaddr->AdjustTail(nullptr);
-    A retval = nodeaddr->Getdata();
-    delete nodeaddr;
-    nodeaddr = currentptr;
-    return retval;
+    try {
+        if (numnode != 0)
+        {
+            numnode--;
+            Node<A> *currentptr = nodeaddr->getTail();
+            A retval = nodeaddr->Getdata();
+            if (numnode != 0)
+            {
+                currentptr->AdjustHead(nullptr);
+                nodeaddr->AdjustTail(nullptr);
+                delete nodeaddr;
+                nodeaddr = currentptr;
+            }
+            else
+            {
+                delete nodeaddr;
+                nodeaddr = nullptr;
+            }
+            return retval;
+        }
+        else
+        {
+            throw UnivEX(3);
+        }
+    } catch (UnivEX &ex) {
+        ex.What();
+    }
 }
 
 template <typename A>
 void unvlist<A>::push_back(const A &val)
 {
-    numnode++;
-    Node<A> *currentptr = nodeaddr;
-    while (currentptr->getTail() != nullptr)
+    if (numnode != 0)
     {
+        numnode++;
+        Node<A> *currentptr = nodeaddr;
+        while (currentptr->getTail() != nullptr)
+        {
+            currentptr = currentptr->getTail();
+        }
+        currentptr->NewTail();
         currentptr = currentptr->getTail();
+        currentptr->Setdata(val);
     }
-    currentptr->NewTail();
-    currentptr = currentptr->getTail();
-    currentptr->Setdata(val);
+    else
+    {
+        numnode++;
+        nodeaddr = new Node<A>;
+        nodeaddr->Setdata(val);
+    }
 }
 
 template <typename A>
 void unvlist<A>::push_front(const A &val)
 {
-    numnode++;
-    Node<A> *currentptr = new Node<A>;
-    currentptr->Setdata(val);
-    currentptr->AdjustTail(nodeaddr);
-    nodeaddr->AdjustHead(currentptr);
-    nodeaddr = currentptr;
+    if (numnode != 0)
+    {
+        numnode++;
+        Node<A> *currentptr = new Node<A>;
+        currentptr->Setdata(val);
+        currentptr->AdjustTail(nodeaddr);
+        nodeaddr->AdjustHead(currentptr);
+        nodeaddr = currentptr;
+    }
+    else
+    {
+        numnode++;
+        nodeaddr = new Node<A>;
+        nodeaddr->Setdata(val);
+    }
 }
 
 template <typename A>
-unvlist<A> unvlist<A>::operator+(const unvlist<A> &Obj)
+unvlist<A> unvlist<A>::operator+(const unvlist<A> &Obj) // check numnode == 0
 {
     Node<A> *currentptr = nodeaddr;
     unvlist<A> retval;
-    while (currentptr->getTail() != nullptr)
+    if (numnode != 0)
     {
-        retval.push_back(currentptr->Getdata());
-        currentptr = currentptr->getTail();
+        while (currentptr->getTail() != nullptr)
+        {
+            retval.push_back(currentptr->Getdata());
+            currentptr = currentptr->getTail();
+        }
     }
     currentptr = Obj.nodeaddr;
-    while (currentptr->getTail() != nullptr)
+    if (Obj.numnode != 0)
     {
-        retval.push_back(currentptr->Getdata());
-        currentptr = currentptr->getTail();
+        while (currentptr->getTail() != nullptr)
+        {
+            retval.push_back(currentptr->Getdata());
+            currentptr = currentptr->getTail();
+        }
     }
     return retval;
 }
@@ -293,6 +369,10 @@ bool unvlist<A>::operator==(const unvlist<A> &Obj)
     if (numnode != Obj.numnode)
     {
         return retval;
+    }
+    else if (numnode == 0)
+    {
+        return true;
     }
     else
     {

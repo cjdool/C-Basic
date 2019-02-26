@@ -62,6 +62,9 @@ private:
             case 2:
                 callback = std::make_pair("Index is out of Range", "Index number is over total count of node");
                 break;
+            case 3:
+                callback = std::make_pair("No Element Left", "There is no element in list, can not pop anything");
+                break;
             default:
                 callback = std::make_pair("Undefined Error", "Undefined Error");
                 break;
